@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>白川村混雑度AI予測カレンダー</title>
+    <link rel="icon" href="data:,">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -30,6 +31,13 @@
             --bg-level-8: #ffebee; --badge-level-8: #FF7043;
             --bg-level-9: #ffcdd2; --badge-level-9: #F44336;
             --bg-level-10: #ffcdd2; --badge-level-10: #C62828;
+            --sentiment-bg-0: #f8f9fa;
+            --sentiment-bg-1: #fdecea; --sentiment-badge-1: #c62828;
+            --sentiment-bg-2: #fff3e0; --sentiment-badge-2: #ef6c00;
+            --sentiment-bg-3: #fffde7; --sentiment-badge-3: #f9a825;
+            --sentiment-bg-4: #e8f5e9; --sentiment-badge-4: #43a047;
+            --sentiment-bg-5: #e0f2f1; --sentiment-badge-5: #00897b;
+            --sentiment-line: rgba(42, 157, 143, 0.32);
         }
 
         *, *::before, *::after {
@@ -62,6 +70,38 @@
             margin-top: 0;
             margin-bottom: 15px;
             color: #1d3557;
+        }
+
+        .forecast-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .forecast-tab {
+            flex: 1;
+            border: 1px solid #d0d7de;
+            background-color: #f8f9fa;
+            color: #457b9d;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .forecast-tab:hover {
+            border-color: #457b9d;
+        }
+        .forecast-tab.active {
+            background-color: #457b9d;
+            color: #fff;
+            border-color: #457b9d;
+        }
+        .forecast-view {
+            display: none;
+        }
+        .forecast-view.active {
+            display: block;
         }
 
         .month-navigator {
@@ -101,7 +141,8 @@
             color: #e63946;
         }
 
-        #calendar-header {
+        #calendar-header,
+        #sentiment-calendar-header {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
@@ -112,7 +153,8 @@
         .day-of-week.sun { color: #e63946; }
         .day-of-week.sat { color: #1976D2; } 
 
-        #calendar-body {
+        #calendar-body,
+        #sentiment-calendar-body {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 0;
@@ -180,6 +222,78 @@
             justify-content: center;
             align-items: flex-end;
             width: 100%;
+        }
+
+        .sentiment-day {
+            min-height: 96px;
+        }
+        .sentiment-day.no-data { background-color: var(--sentiment-bg-0); }
+        .sentiment-day .day-footer {
+            flex: 1;
+            justify-content: center;
+            align-items: center;
+        }
+        .sentiment-day-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            width: 100%;
+            text-align: center;
+            padding: 4px 0 2px;
+        }
+        .sentiment-value {
+            font-size: 1.45rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--sentiment-color);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        .sentiment-count {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: rgba(29, 53, 87, 0.72);
+            line-height: 1.1;
+        }
+        .sentiment-chart-panel {
+            margin-top: 18px;
+            padding: 14px 14px 10px;
+            border: 1px solid #d7e3ea;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #f8fbfc 0%, #ffffff 100%);
+        }
+        .sentiment-chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .sentiment-chart-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #1d3557;
+        }
+        .sentiment-chart-subtitle {
+            font-size: 0.85rem;
+            color: #5c7284;
+        }
+        .sentiment-chart-canvas-wrap {
+            position: relative;
+            height: 240px;
+        }
+        .sentiment-chart-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 160px;
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        .sentiment-note-emphasis {
+            color: #2a6f62;
+            font-weight: bold;
         }
 
         .stats { 
@@ -395,6 +509,70 @@
          .modal-notes p {
             margin: 2px 0;
          }
+
+        .sentiment-modal-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .sentiment-modal-card {
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.7);
+        }
+        .sentiment-modal-label {
+            font-size: 0.82rem;
+            color: #5c7284;
+            margin-bottom: 6px;
+        }
+        .sentiment-modal-value {
+            font-size: 1.35rem;
+            font-weight: bold;
+            color: #17324a;
+        }
+        .sentiment-distribution {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.7);
+        }
+        .sentiment-distribution-title {
+            font-size: 0.88rem;
+            font-weight: bold;
+            color: #34516b;
+            margin-bottom: 10px;
+        }
+        .sentiment-distribution-row {
+            display: grid;
+            grid-template-columns: 28px 1fr 34px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 7px;
+        }
+        .sentiment-distribution-row:last-child {
+            margin-bottom: 0;
+        }
+        .sentiment-distribution-score {
+            font-weight: bold;
+            color: #1d3557;
+        }
+        .sentiment-distribution-track {
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.65);
+            overflow: hidden;
+        }
+        .sentiment-distribution-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(38, 166, 154, 0.75) 0%, rgba(33, 150, 243, 0.85) 100%);
+        }
+        .sentiment-distribution-count {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #456177;
+        }
         
         /* --- 利用規約・グラフモーダル --- */
         .modal-content-large {
@@ -460,6 +638,61 @@
              height: 100%;
              width: 1200px;
         }
+
+        .sentiment-title-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .sentiment-inline-select {
+            position: relative;
+            display: inline-flex;
+        }
+        .sentiment-inline-select::after {
+            content: '▾';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7d8c;
+            font-size: 0.82rem;
+            pointer-events: none;
+        }
+        .sentiment-inline-select select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            border: 1px solid #c9d7df;
+            background: linear-gradient(180deg, #ffffff 0%, #f3fafc 100%);
+            color: #1d3557;
+            border-radius: 999px;
+            min-height: 40px;
+            padding: 0 38px 0 16px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(29, 53, 87, 0.06);
+            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+            font-size: 0.98rem;
+        }
+        .sentiment-inline-select select:hover {
+            transform: translateY(-1px);
+            border-color: #2a9d8f;
+            box-shadow: 0 5px 14px rgba(42, 157, 143, 0.14);
+        }
+        .sentiment-inline-select select:focus {
+            outline: none;
+            border-color: #2a9d8f;
+            background: linear-gradient(180deg, #f0fbf9 0%, #e4f8f2 100%);
+            box-shadow: 0 5px 14px rgba(42, 157, 143, 0.16);
+        }
+        .sentiment-overview-chart-wrap {
+            height: 280px;
+        }
+        #sentiment-overview-chart {
+            cursor: pointer;
+        }
         
         .scrollable-container {
             flex-grow: 1;
@@ -500,29 +733,92 @@
         </header>
 
         <main>
-            <div class="month-navigator">
-                <button id="prev-month" aria-label="前の月へ">&lt;</button>
-                <div id="current-month-year"></div>
-                <button id="next-month" aria-label="次の月へ">&gt;</button>
+            <div class="forecast-tabs" role="tablist" aria-label="表示切り替え">
+                <button id="tab-monthly" class="forecast-tab active" role="tab" aria-selected="true" aria-controls="monthly-view">月間予測</button>
+                <button id="tab-sentiment" class="forecast-tab" role="tab" aria-selected="false" aria-controls="sentiment-view">感じ方データ</button>
             </div>
-            <div id="calendar">
-                <div id="calendar-header">
-                    <div class="day-of-week sun">日</div>
-                    <div class="day-of-week">月</div>
-                    <div class="day-of-week">火</div>
-                    <div class="day-of-week">水</div>
-                    <div class="day-of-week">木</div>
-                    <div class="day-of-week">金</div>
-                    <div class="day-of-week sat">土</div>
+
+            <section id="monthly-view" class="forecast-view active">
+                <div class="month-navigator">
+                    <button id="prev-month" aria-label="前の月へ">&lt;</button>
+                    <div id="current-month-year"></div>
+                    <button id="next-month" aria-label="次の月へ">&gt;</button>
                 </div>
-                <div id="calendar-body">
+                <div id="calendar">
+                    <div id="calendar-header">
+                        <div class="day-of-week sun">日</div>
+                        <div class="day-of-week">月</div>
+                        <div class="day-of-week">火</div>
+                        <div class="day-of-week">水</div>
+                        <div class="day-of-week">木</div>
+                        <div class="day-of-week">金</div>
+                        <div class="day-of-week sat">土</div>
                     </div>
-            </div>
-            <div class="notes">
-                <p class="important">※予測人数は普通車の台数のみから換算したものです。</p>
-                <p>※普通車の台数はせせらぎ、みだしま、寺尾の合算です。</p>
-                <p>※赤色の数字は台数、グレーの数字は人数を表しています。</p>
-            </div>
+                    <div id="calendar-body">
+                        </div>
+                </div>
+                <div class="notes">
+                    <p class="important">※予測人数は普通車の台数のみから換算したものです。</p>
+                    <p>※普通車の台数はせせらぎ、みだしま、寺尾の合算です。</p>
+                    <p>※赤色の数字は台数、グレーの数字は人数を表しています。</p>
+                </div>
+            </section>
+
+            <section id="sentiment-view" class="forecast-view" aria-hidden="true">
+                <div class="month-navigator">
+                    <button id="prev-sentiment-month" aria-label="前の月へ">&lt;</button>
+                    <div id="sentiment-current-month-year" class="sentiment-title-controls">
+                        <label class="sentiment-inline-select">
+                            <select id="sentiment-year-select" aria-label="年を選択">
+                                <option>2026年</option>
+                            </select>
+                        </label>
+                        <label class="sentiment-inline-select">
+                            <select id="sentiment-month-select" aria-label="月を選択">
+                                <option>5月</option>
+                            </select>
+                        </label>
+                    </div>
+                    <button id="next-sentiment-month" aria-label="次の月へ">&gt;</button>
+                </div>
+                <div id="sentiment-calendar">
+                    <div id="sentiment-calendar-header">
+                        <div class="day-of-week sun">日</div>
+                        <div class="day-of-week">月</div>
+                        <div class="day-of-week">火</div>
+                        <div class="day-of-week">水</div>
+                        <div class="day-of-week">木</div>
+                        <div class="day-of-week">金</div>
+                        <div class="day-of-week sat">土</div>
+                    </div>
+                    <div id="sentiment-calendar-body"></div>
+                </div>
+                <div class="sentiment-chart-panel">
+                    <div class="sentiment-chart-header">
+                        <div class="sentiment-chart-title">感じ方の推移</div>
+                        <div id="sentiment-chart-subtitle" class="sentiment-chart-subtitle">表示中の月の日別平均</div>
+                    </div>
+                    <div id="sentiment-chart-empty" class="sentiment-chart-empty" hidden>感じ方データがありません。</div>
+                    <div id="sentiment-chart-canvas-wrap" class="sentiment-chart-canvas-wrap">
+                        <canvas id="sentiment-chart-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="sentiment-chart-panel">
+                    <div class="sentiment-chart-header">
+                        <div class="sentiment-chart-title">これまでのデータ</div>
+                        <div id="sentiment-overview-chart-subtitle" class="sentiment-chart-subtitle">クリックすると該当月へ移動します</div>
+                    </div>
+                    <div id="sentiment-overview-chart-empty" class="sentiment-chart-empty" hidden>感じ方データがありません。</div>
+                    <div id="sentiment-overview-chart-wrap" class="sentiment-chart-canvas-wrap sentiment-overview-chart-wrap">
+                        <canvas id="sentiment-overview-chart"></canvas>
+                    </div>
+                </div>
+                <div class="notes">
+                    <p class="important sentiment-note-emphasis">※感じ方スコアは 1〜5 のアンケート回答を日別平均したものです。</p>
+                    <p>※スプレッドシート接続後、日別平均をこれまでのデータとして表示します。</p>
+                    <p>※日付をクリックすると平均値、回答件数、スコア分布を確認できます。</p>
+                </div>
+            </section>
         </main>
 
         <footer>
@@ -617,6 +913,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- 設定項目 ---
     const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTmQpFVNY7pF25NLQnbRgG5gLeG7i4IsISqDy4yv3_eNGi1-rfoYFz44nPCviMVo-_Zwrj9sH1iiKYz/pub?gid=0&single=true&output=csv';
     const googleSheetUrlNextMonth = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGRrkZROswYj9wVu8NSpVjeG64zv9vhC1MU-wkRTz5p87UxyRHSFnRCTA5vW5KF0RB7DHX0TjdVaSq/pub?gid=0&single=true&output=csv';
+    const sentimentCsvUrl = '';
 
     const congestionThresholds = {
         level_1: 301,  level_2: 401,  level_3: 501,  level_4: 601,  level_5: 701,
@@ -635,6 +932,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const monthYearElement = document.getElementById('current-month-year');
     const prevButton = document.getElementById('prev-month');
     const nextButton = document.getElementById('next-month');
+    const monthlyTabButton = document.getElementById('tab-monthly');
+    const sentimentTabButton = document.getElementById('tab-sentiment');
+    const monthlyView = document.getElementById('monthly-view');
+    const sentimentView = document.getElementById('sentiment-view');
+    const sentimentCalendarBody = document.getElementById('sentiment-calendar-body');
+    const sentimentYearSelect = document.getElementById('sentiment-year-select');
+    const sentimentMonthSelect = document.getElementById('sentiment-month-select');
+    const prevSentimentButton = document.getElementById('prev-sentiment-month');
+    const nextSentimentButton = document.getElementById('next-sentiment-month');
+    const sentimentChartCanvas = document.getElementById('sentiment-chart-canvas');
+    const sentimentChartCanvasWrap = document.getElementById('sentiment-chart-canvas-wrap');
+    const sentimentChartEmpty = document.getElementById('sentiment-chart-empty');
+    const sentimentChartSubtitle = document.getElementById('sentiment-chart-subtitle');
+    const sentimentOverviewChartCanvas = document.getElementById('sentiment-overview-chart');
+    const sentimentOverviewChartWrap = document.getElementById('sentiment-overview-chart-wrap');
+    const sentimentOverviewChartEmpty = document.getElementById('sentiment-overview-chart-empty');
+    const sentimentOverviewChartSubtitle = document.getElementById('sentiment-overview-chart-subtitle');
     
     const modalOverlay = document.getElementById('modal-overlay');
     const modalSwiper = document.getElementById('day-modal-swiper');
@@ -649,16 +963,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeChartButton = document.getElementById('close-chart-button');
     const chartMonthYearDisplay = document.getElementById('chart-month-year-display');
     const forecastCanvas = document.getElementById('forecastChart');
+    const footerElement = document.querySelector('footer');
     let forecastChartInstance;
+    let sentimentChartInstance;
+    let sentimentOverviewChartInstance;
     let focusedDatasetIndex = -1; 
 
     const baseDate = new Date();
     baseDate.setDate(1);
     let currentDate = new Date(baseDate);
+    let currentSentimentDate = new Date(baseDate);
+    let sentimentBaseDate = new Date(baseDate);
+    let sentimentLimitDate = new Date(baseDate);
     let allData = [];
+    let sentimentData = [];
     let holidays = {}; 
+    let monthlyClickableDates = [];
+    let sentimentClickableDates = [];
     let dataWithClickableDates = [];
     let currentModalIndex = -1;
+    let activeView = 'monthly';
 
     let touchStartX = 0;
     let isSwiping = false;
@@ -677,6 +1001,63 @@ document.addEventListener('DOMContentLoaded', function() {
         if (cars < congestionThresholds.level_8) return 8;
         if (cars < congestionThresholds.level_9) return 9;
         return 10;
+    }
+
+    function parseCsvRow(line) {
+        return line.split(',').map((value) => value.trim());
+    }
+
+    function parseNumber(value) {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? Math.round(parsed) : null;
+    }
+
+    function parseDecimal(value) {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) return null;
+        return Math.round(parsed * 10) / 10;
+    }
+
+    function formatDateLabel(date) {
+        const week = ["日", "月", "火", "水", "木", "金", "土"];
+        return `${date.getMonth() + 1}月${date.getDate()}日(${week[date.getDay()]})`;
+    }
+
+    function resolveCssVar(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function formatSentimentAverage(value) {
+        if (value === undefined || value === null || value === '') return '-';
+        return Number(value).toFixed(1);
+    }
+
+    function getSentimentLevel(value) {
+        if (value === undefined || value === null || Number.isNaN(Number(value))) return 0;
+        return Math.min(5, Math.max(1, Math.round(Number(value))));
+    }
+
+    function setActiveView(view) {
+        activeView = view;
+        const isMonthly = view === 'monthly';
+        const isSentiment = view === 'sentiment';
+
+        monthlyTabButton.classList.toggle('active', isMonthly);
+        sentimentTabButton.classList.toggle('active', isSentiment);
+        monthlyTabButton.setAttribute('aria-selected', String(isMonthly));
+        sentimentTabButton.setAttribute('aria-selected', String(isSentiment));
+        monthlyView.classList.toggle('active', isMonthly);
+        sentimentView.classList.toggle('active', isSentiment);
+        monthlyView.setAttribute('aria-hidden', String(!isMonthly));
+        sentimentView.setAttribute('aria-hidden', String(!isSentiment));
+        footerElement.hidden = isSentiment;
+        dataWithClickableDates = isSentiment ? sentimentClickableDates : monthlyClickableDates;
+
+        if (isSentiment) {
+            syncSentimentViews();
+        }
     }
 
     function updateNavButtonsState() {
@@ -750,6 +1131,379 @@ document.addEventListener('DOMContentLoaded', function() {
             currentCellDate.setDate(currentCellDate.getDate() + 1);
         }
         updateNavButtonsState();
+    }
+
+    function setSentimentCalendarBounds() {
+        if (!sentimentData.length) {
+            const today = new Date();
+            sentimentBaseDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            sentimentLimitDate = new Date(sentimentBaseDate);
+            currentSentimentDate = new Date(sentimentBaseDate);
+            return;
+        }
+
+        const minDate = new Date(`${sentimentData[0].date}T00:00:00`);
+        const maxDate = new Date(`${sentimentData[sentimentData.length - 1].date}T00:00:00`);
+        sentimentBaseDate = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+        sentimentLimitDate = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+        currentSentimentDate = new Date(sentimentLimitDate);
+    }
+
+    function updateSentimentNavButtonsState() {
+        prevSentimentButton.disabled = currentSentimentDate.getFullYear() <= sentimentBaseDate.getFullYear()
+            && currentSentimentDate.getMonth() <= sentimentBaseDate.getMonth();
+        nextSentimentButton.disabled = currentSentimentDate.getFullYear() >= sentimentLimitDate.getFullYear()
+            && currentSentimentDate.getMonth() >= sentimentLimitDate.getMonth();
+    }
+
+    function getSentimentMonthSeries(year, month) {
+        const monthRecords = sentimentData.filter((record) => {
+            const date = new Date(`${record.date}T00:00:00`);
+            return date.getFullYear() === year && date.getMonth() === month;
+        });
+        const recordMap = new Map(monthRecords.map((record) => [record.date, record]));
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const labels = Array.from({ length: daysInMonth }, (_, index) => `${index + 1}`);
+        const dateLabels = labels.map((_, index) =>
+            `${year}-${String(month + 1).padStart(2, '0')}-${String(index + 1).padStart(2, '0')}`
+        );
+        const scores = dateLabels.map((dateStr) => {
+            const record = recordMap.get(dateStr);
+            return record ? record.sentimentAvg : null;
+        });
+        return { monthRecords, recordMap, labels, scores, dateLabels };
+    }
+
+    function getSentimentMonthOptions() {
+        if (!sentimentData.length) return [];
+
+        const monthOptions = [];
+        const cursor = new Date(sentimentBaseDate);
+        while (cursor <= sentimentLimitDate) {
+            const year = cursor.getFullYear();
+            const month = cursor.getMonth();
+            monthOptions.push({ year, month });
+            cursor.setMonth(cursor.getMonth() + 1);
+        }
+        return monthOptions;
+    }
+
+    function renderSentimentSelectors() {
+        const monthOptions = getSentimentMonthOptions();
+        const currentYear = currentSentimentDate.getFullYear();
+        const currentMonth = currentSentimentDate.getMonth();
+
+        if (!monthOptions.length) {
+            sentimentYearSelect.innerHTML = `<option value="${currentYear}">${currentYear}年</option>`;
+            sentimentMonthSelect.innerHTML = `<option value="${currentMonth}">${currentMonth + 1}月</option>`;
+            return;
+        }
+
+        const years = [...new Set(monthOptions.map((option) => option.year))];
+        sentimentYearSelect.innerHTML = '';
+        years.forEach((year) => {
+            const option = document.createElement('option');
+            option.value = String(year);
+            option.textContent = `${year}年`;
+            option.selected = year === currentYear;
+            sentimentYearSelect.appendChild(option);
+        });
+
+        const monthsForYear = monthOptions.filter((option) => option.year === currentYear);
+        sentimentMonthSelect.innerHTML = '';
+        monthsForYear.forEach(({ year, month }) => {
+            const option = document.createElement('option');
+            option.value = String(month);
+            option.textContent = `${month + 1}月`;
+            option.selected = year === currentYear && month === currentMonth;
+            sentimentMonthSelect.appendChild(option);
+        });
+    }
+
+    function getSentimentTickStyle(dateStr) {
+        const date = new Date(`${dateStr}T00:00:00`);
+        const dayOfWeek = date.getDay();
+        if (holidays[dateStr] || dayOfWeek === 0) return { color: '#e63946', weight: 'bold' };
+        if (dayOfWeek === 6) return { color: '#1976D2', weight: '600' };
+        return { color: '#5c7284', weight: '500' };
+    }
+
+    function renderSentimentCalendar(year, month) {
+        sentimentCalendarBody.innerHTML = '';
+
+        const firstDayOfMonth = new Date(year, month, 1);
+        const gridStartDate = new Date(firstDayOfMonth);
+        gridStartDate.setDate(gridStartDate.getDate() - firstDayOfMonth.getDay());
+
+        const lastDayOfMonth = new Date(year, month + 1, 0);
+        const gridEndDate = new Date(lastDayOfMonth);
+        gridEndDate.setDate(gridEndDate.getDate() + (6 - lastDayOfMonth.getDay()));
+
+        let currentCellDate = new Date(gridStartDate);
+        while (currentCellDate <= gridEndDate) {
+            const cellYear = currentCellDate.getFullYear();
+            const cellMonth = currentCellDate.getMonth();
+            const cellDay = currentCellDate.getDate();
+            const isCurrentMonth = cellMonth === month;
+            const otherMonthClass = isCurrentMonth ? '' : 'other-month';
+            const dateStr = `${cellYear}-${String(cellMonth + 1).padStart(2, '0')}-${String(cellDay).padStart(2, '0')}`;
+            const data = sentimentData.find((record) => record.date === dateStr);
+            const dayOfWeek = currentCellDate.getDay();
+            const holidayName = holidays[dateStr];
+            const today = new Date();
+            const isToday = today.getFullYear() === cellYear && today.getMonth() === cellMonth && today.getDate() === cellDay;
+
+            let dateColorClass = '';
+            if (dayOfWeek === 0 || holidayName) dateColorClass = 'date-sun';
+            else if (dayOfWeek === 6) dateColorClass = 'date-sat';
+
+            const dayCell = document.createElement('div');
+            if (data && data.sentimentAvg !== null) {
+                const level = getSentimentLevel(data.sentimentAvg);
+                dayCell.className = `day sentiment-day has-data clickable ${otherMonthClass} ${isToday ? 'today' : ''}`;
+                dayCell.style.setProperty('--bg-color', `var(--sentiment-bg-${level})`);
+                dayCell.style.setProperty('--sentiment-color', `var(--sentiment-badge-${level})`);
+                dayCell.innerHTML = `
+                    <div class="day-header">
+                        <div class="date ${dateColorClass}">${cellDay}</div>
+                    </div>
+                    <div class="day-footer">
+                        <div class="sentiment-day-body">
+                            <div class="sentiment-value">${formatSentimentAverage(data.sentimentAvg)}</div>
+                            <div class="sentiment-count">${data.sentimentCount}件</div>
+                        </div>
+                    </div>
+                `;
+                dayCell.dataset.dateStr = dateStr;
+            } else {
+                dayCell.className = `day sentiment-day no-data ${otherMonthClass} ${isToday ? 'today' : ''}`;
+                dayCell.innerHTML = `
+                    <div class="day-header">
+                        <div class="date ${dateColorClass}">${cellDay}</div>
+                    </div>
+                    <div class="day-footer"></div>
+                `;
+            }
+            sentimentCalendarBody.appendChild(dayCell);
+            currentCellDate.setDate(currentCellDate.getDate() + 1);
+        }
+
+        updateSentimentNavButtonsState();
+    }
+
+    function renderSentimentChart() {
+        if (sentimentChartInstance) {
+            sentimentChartInstance.destroy();
+            sentimentChartInstance = null;
+        }
+
+        const year = currentSentimentDate.getFullYear();
+        const month = currentSentimentDate.getMonth();
+        const { monthRecords, recordMap, labels, scores, dateLabels } = getSentimentMonthSeries(year, month);
+        sentimentChartSubtitle.textContent = `${year}年${month + 1}月の日別平均`;
+
+        if (!monthRecords.length) {
+            sentimentChartEmpty.hidden = false;
+            sentimentChartCanvasWrap.hidden = true;
+            sentimentChartEmpty.textContent = sentimentData.length ? '表示中の月に感じ方データがありません。' : 'スプレッドシート接続後に感じ方データを表示します。';
+            return;
+        }
+
+        sentimentChartEmpty.hidden = true;
+        sentimentChartCanvasWrap.hidden = false;
+
+        const pointColors = scores.map((value) => {
+            if (value === null || value === undefined) return 'rgba(0,0,0,0)';
+            return resolveCssVar(`--sentiment-badge-${getSentimentLevel(value)}`);
+        });
+        const tickStyles = dateLabels.map((dateStr) => getSentimentTickStyle(dateStr));
+
+        sentimentChartInstance = new Chart(sentimentChartCanvas, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: '感じ方平均',
+                    data: scores,
+                    borderColor: '#2a9d8f',
+                    backgroundColor: 'rgba(42, 157, 143, 0.12)',
+                    fill: true,
+                    tension: 0.25,
+                    spanGaps: false,
+                    pointRadius: 5,
+                    pointHoverRadius: 6,
+                    pointBorderWidth: 2,
+                    pointBorderColor: '#ffffff',
+                    pointBackgroundColor: pointColors,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => formatDateLabel(new Date(`${dateLabels[items[0].dataIndex]}T00:00:00`)),
+                            label: (context) => {
+                                const data = recordMap.get(dateLabels[context.dataIndex]);
+                                if (!data) return '回答なし';
+                                return `平均 ${formatSentimentAverage(data.sentimentAvg)} / ${data.sentimentCount}件`;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: (context) => tickStyles[context.index]?.color || '#5c7284',
+                            font: (context) => ({ weight: tickStyles[context.index]?.weight || 'normal' }),
+                        },
+                    },
+                    y: {
+                        min: 1,
+                        max: 5,
+                        ticks: { stepSize: 1 },
+                        grid: { color: resolveCssVar('--sentiment-line') },
+                    },
+                },
+            },
+        });
+    }
+
+    function getSentimentOverviewSeries() {
+        if (!sentimentData.length) return { labels: [], scores: [], records: [] };
+
+        const recordMap = new Map(sentimentData.map((record) => [record.date, record]));
+        const labels = [];
+        const scores = [];
+        const records = [];
+        const cursor = new Date(`${sentimentData[0].date}T00:00:00`);
+        const end = new Date(`${sentimentData[sentimentData.length - 1].date}T00:00:00`);
+
+        while (cursor <= end) {
+            const dateStr = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+            const record = recordMap.get(dateStr) || null;
+            labels.push(dateStr);
+            scores.push(record ? record.sentimentAvg : null);
+            records.push(record);
+            cursor.setDate(cursor.getDate() + 1);
+        }
+
+        return { labels, scores, records };
+    }
+
+    function renderSentimentOverviewChart() {
+        if (sentimentOverviewChartInstance) {
+            sentimentOverviewChartInstance.destroy();
+            sentimentOverviewChartInstance = null;
+        }
+
+        const { labels, scores, records } = getSentimentOverviewSeries();
+        if (!labels.length) {
+            sentimentOverviewChartEmpty.hidden = false;
+            sentimentOverviewChartWrap.hidden = true;
+            sentimentOverviewChartEmpty.textContent = 'スプレッドシート接続後にこれまでのデータを表示します。';
+            return;
+        }
+
+        sentimentOverviewChartEmpty.hidden = true;
+        sentimentOverviewChartWrap.hidden = false;
+
+        const boundaryIndexes = labels.reduce((indexes, dateStr, index) => {
+            const day = Number(dateStr.slice(8, 10));
+            if (index === 0 || day === 1) indexes.add(index);
+            return indexes;
+        }, new Set());
+
+        sentimentOverviewChartInstance = new Chart(sentimentOverviewChartCanvas, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: '感じ方平均',
+                    data: scores,
+                    borderColor: '#2a9d8f',
+                    backgroundColor: 'rgba(42, 157, 143, 0.08)',
+                    fill: false,
+                    tension: 0.18,
+                    spanGaps: false,
+                    pointRadius: 2.5,
+                    pointHoverRadius: 4.5,
+                    pointBorderWidth: 0,
+                    pointBackgroundColor: scores.map((value) => value == null ? 'rgba(0,0,0,0)' : '#2a9d8f'),
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                interaction: { mode: 'nearest', intersect: false },
+                onClick: (event, _elements, chart) => {
+                    const nativeEvent = event?.native || event;
+                    const x = nativeEvent?.offsetX ?? event?.x ?? null;
+                    if (x === null) return;
+                    const rawIndex = chart.scales.x.getValueForPixel(x);
+                    if (rawIndex === null || rawIndex === undefined || Number.isNaN(rawIndex)) return;
+                    const index = Math.max(0, Math.min(labels.length - 1, Math.round(rawIndex)));
+                    const date = new Date(`${labels[index]}T00:00:00`);
+                    currentSentimentDate = new Date(date.getFullYear(), date.getMonth(), 1);
+                    syncSentimentViews();
+                },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => formatDateLabel(new Date(`${labels[items[0].dataIndex]}T00:00:00`)),
+                            label: (context) => {
+                                const record = records[context.dataIndex];
+                                if (!record) return '回答なし';
+                                return `平均 ${formatSentimentAverage(record.sentimentAvg)} / ${record.sentimentCount}件`;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 0,
+                            minRotation: 0,
+                            callback: (_value, index) => {
+                                if (!boundaryIndexes.has(index)) return '';
+                                const date = new Date(`${labels[index]}T00:00:00`);
+                                return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+                            },
+                            color: (context) => boundaryIndexes.has(context.index) ? '#1d3557' : 'rgba(0,0,0,0)',
+                            font: (context) => ({ weight: boundaryIndexes.has(context.index) ? 'bold' : 'normal' }),
+                        },
+                        grid: {
+                            color: (context) => boundaryIndexes.has(context.index) ? 'rgba(29, 53, 87, 0.18)' : 'rgba(29, 53, 87, 0.05)',
+                            lineWidth: (context) => boundaryIndexes.has(context.index) ? 1.4 : 0.6,
+                        },
+                    },
+                    y: {
+                        min: 1,
+                        max: 5,
+                        ticks: { stepSize: 1 },
+                        grid: { color: 'rgba(42, 157, 143, 0.14)' },
+                    },
+                },
+            },
+        });
+
+        sentimentOverviewChartSubtitle.textContent = 'クリックすると該当月へ移動します';
+    }
+
+    function syncSentimentViews() {
+        renderSentimentCalendar(currentSentimentDate.getFullYear(), currentSentimentDate.getMonth());
+        renderSentimentChart();
+        renderSentimentOverviewChart();
+        renderSentimentSelectors();
     }
     
     // グラフの背景色を描画するカスタムプラグイン
@@ -986,6 +1740,58 @@ document.addEventListener('DOMContentLoaded', function() {
         const week = ["日", "月", "火", "水", "木", "金", "土"];
         const formattedDate = `${date.getMonth() + 1}月${date.getDate()}日(${week[dayOfWeek]})`;
         const holidayName = holidays[data.date];
+
+        if (data.detailMode === 'sentiment') {
+            const level = getSentimentLevel(data.sentimentAvg);
+            const bgColor = resolveCssVar(`--sentiment-bg-${level}`);
+            const maxDistribution = Math.max(
+                data.sentiment1 || 0,
+                data.sentiment2 || 0,
+                data.sentiment3 || 0,
+                data.sentiment4 || 0,
+                data.sentiment5 || 0,
+                1
+            );
+            let dateColorClass = '';
+            if (dayOfWeek === 0 || holidayName) dateColorClass = 'date-sun';
+            else if (dayOfWeek === 6) dateColorClass = 'date-sat';
+
+            content.style.backgroundColor = bgColor;
+            content.innerHTML = `
+                <div class="modal-date-wrapper">
+                    <span class="modal-date ${dateColorClass}">${formattedDate}</span>
+                    <span class="modal-holiday-name" style="display: ${holidayName ? 'inline' : 'none'}">${holidayName || ''}</span>
+                </div>
+                <div class="sentiment-modal-summary">
+                    <div class="sentiment-modal-card">
+                        <div class="sentiment-modal-label">日別平均</div>
+                        <div class="sentiment-modal-value">${formatSentimentAverage(data.sentimentAvg)}</div>
+                    </div>
+                    <div class="sentiment-modal-card">
+                        <div class="sentiment-modal-label">回答件数</div>
+                        <div class="sentiment-modal-value">${data.sentimentCount}件</div>
+                    </div>
+                </div>
+                <div class="sentiment-distribution">
+                    <div class="sentiment-distribution-title">スコア分布</div>
+                    ${[1, 2, 3, 4, 5].map((score) => {
+                        const count = data[`sentiment${score}`] || 0;
+                        const width = maxDistribution ? (count / maxDistribution) * 100 : 0;
+                        return `
+                            <div class="sentiment-distribution-row">
+                                <div class="sentiment-distribution-score">${score}</div>
+                                <div class="sentiment-distribution-track">
+                                    <div class="sentiment-distribution-fill" style="width: ${width}%;"></div>
+                                </div>
+                                <div class="sentiment-distribution-count">${count}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            return card;
+        }
+
         const level = getCongestionLevel(data.cars);
         const bgColor = getComputedStyle(document.documentElement).getPropertyValue(`--bg-level-${level}`).trim();
         
@@ -1068,13 +1874,55 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             allData = combinedData.sort((a, b) => new Date(a.date) - new Date(b.date));
-            dataWithClickableDates = allData.filter(d => d.cars !== null && d.people !== null);
+            sentimentData = [];
+            if (isUrlValid(sentimentCsvUrl)) {
+                try {
+                    const cacheSeparator = sentimentCsvUrl.includes('?') ? '&' : '?';
+                    const sentimentResponse = await fetch(`${sentimentCsvUrl}${cacheSeparator}t=${new Date().getTime()}`);
+                    if (sentimentResponse && sentimentResponse.ok) {
+                        const csvText = await sentimentResponse.text();
+                        const [headerLine, ...rows] = csvText.trim().split(/\r?\n/);
+                        const headers = parseCsvRow(headerLine);
+                        sentimentData = rows.map((row) => {
+                            const values = parseCsvRow(row);
+                            const record = {};
+                            headers.forEach((header, index) => {
+                                record[header] = values[index] ?? '';
+                            });
+                            return {
+                                date: record.date,
+                                sentimentAvg: parseDecimal(record.sentiment_avg),
+                                sentimentCount: parseNumber(record.sentiment_count),
+                                sentiment1: parseNumber(record.sentiment_1) || 0,
+                                sentiment2: parseNumber(record.sentiment_2) || 0,
+                                sentiment3: parseNumber(record.sentiment_3) || 0,
+                                sentiment4: parseNumber(record.sentiment_4) || 0,
+                                sentiment5: parseNumber(record.sentiment_5) || 0,
+                                detailMode: 'sentiment',
+                            };
+                        })
+                        .filter((record) => record.date && record.sentimentAvg !== null && record.sentimentCount !== null)
+                        .sort((a, b) => new Date(a.date) - new Date(b.date));
+                    } else {
+                        console.error('感じ方CSVの読み込みに失敗しました。');
+                    }
+                } catch (error) {
+                    console.error('感じ方CSVの処理中にエラーが発生しました:', error);
+                }
+            }
+
+            monthlyClickableDates = allData.filter(d => d.cars !== null && d.people !== null);
+            sentimentClickableDates = sentimentData.filter(d => d.sentimentAvg !== null && d.sentimentCount !== null);
+            dataWithClickableDates = monthlyClickableDates;
+            setSentimentCalendarBounds();
 
             renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+            syncSentimentViews();
 
         } catch (error) {
             console.error('データ処理中にエラーが発生しました:', error);
             calendarBody.innerHTML = `<div class="error-message">データの読み込みに失敗しました。<br>URLが正しいか確認してください。</div>`;
+            sentimentCalendarBody.innerHTML = `<div class="error-message">感じ方データの読み込みに失敗しました。</div>`;
         }
     }
 
@@ -1089,15 +1937,58 @@ document.addEventListener('DOMContentLoaded', function() {
         currentDate.setMonth(currentDate.getMonth() + 1);
         renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
     });
+
+    prevSentimentButton.addEventListener('click', () => {
+        if (prevSentimentButton.disabled) return;
+        currentSentimentDate.setMonth(currentSentimentDate.getMonth() - 1);
+        syncSentimentViews();
+    });
+
+    nextSentimentButton.addEventListener('click', () => {
+        if (nextSentimentButton.disabled) return;
+        currentSentimentDate.setMonth(currentSentimentDate.getMonth() + 1);
+        syncSentimentViews();
+    });
+
+    sentimentYearSelect.addEventListener('change', () => {
+        const selectedYear = Number(sentimentYearSelect.value);
+        const monthOptions = getSentimentMonthOptions().filter((option) => option.year === selectedYear);
+        const selectedMonth = monthOptions.some((option) => option.month === currentSentimentDate.getMonth())
+            ? currentSentimentDate.getMonth()
+            : monthOptions[0]?.month ?? currentSentimentDate.getMonth();
+        currentSentimentDate = new Date(selectedYear, selectedMonth, 1);
+        syncSentimentViews();
+    });
+
+    sentimentMonthSelect.addEventListener('change', () => {
+        const selectedMonth = Number(sentimentMonthSelect.value);
+        currentSentimentDate = new Date(currentSentimentDate.getFullYear(), selectedMonth, 1);
+        syncSentimentViews();
+    });
     
     calendarBody.addEventListener('click', (e) => {
         const dayCell = e.target.closest('.day.clickable');
         if (!dayCell) return;
         
         const dateStr = dayCell.dataset.dateStr;
+        dataWithClickableDates = monthlyClickableDates;
         currentModalIndex = dataWithClickableDates.findIndex(d => d.date === dateStr);
 
         if(currentModalIndex !== -1) {
+            setupSwipeModal(currentModalIndex);
+            modalOverlay.classList.add('active');
+        }
+    });
+
+    sentimentCalendarBody.addEventListener('click', (e) => {
+        const dayCell = e.target.closest('.sentiment-day.clickable');
+        if (!dayCell) return;
+
+        const dateStr = dayCell.dataset.dateStr;
+        dataWithClickableDates = sentimentClickableDates;
+        currentModalIndex = dataWithClickableDates.findIndex(d => d.date === dateStr);
+
+        if (currentModalIndex !== -1) {
             setupSwipeModal(currentModalIndex);
             modalOverlay.classList.add('active');
         }
@@ -1169,8 +2060,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- グラフモーダルのイベント ---
     monthYearElement.addEventListener('click', () => {
+        if (activeView !== 'monthly') return;
         renderChart(currentDate.getFullYear(), currentDate.getMonth());
     });
+
+    monthlyTabButton.addEventListener('click', () => setActiveView('monthly'));
+    sentimentTabButton.addEventListener('click', () => setActiveView('sentiment'));
     
     closeChartButton.addEventListener('click', () => {
         chartModalOverlay.classList.remove('active');
