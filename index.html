@@ -32,11 +32,11 @@
             --bg-level-9: #ffcdd2; --badge-level-9: #F44336;
             --bg-level-10: #ffcdd2; --badge-level-10: #C62828;
             --sentiment-bg-0: #f8f9fa;
-            --sentiment-bg-1: #fdecea; --sentiment-badge-1: #c62828;
-            --sentiment-bg-2: #fff3e0; --sentiment-badge-2: #ef6c00;
+            --sentiment-bg-1: #eaf3ff; --sentiment-badge-1: #1f6feb;
+            --sentiment-bg-2: #e8f5e9; --sentiment-badge-2: #2e7d32;
             --sentiment-bg-3: #fffde7; --sentiment-badge-3: #f9a825;
-            --sentiment-bg-4: #e8f5e9; --sentiment-badge-4: #43a047;
-            --sentiment-bg-5: #e0f2f1; --sentiment-badge-5: #00897b;
+            --sentiment-bg-4: #fff3e0; --sentiment-badge-4: #ef6c00;
+            --sentiment-bg-5: #fdecea; --sentiment-badge-5: #c62828;
             --sentiment-line: rgba(42, 157, 143, 0.32);
         }
 
@@ -129,6 +129,30 @@
         .month-navigator button:disabled {
             color: #b0c4de;
             cursor: not-allowed;
+        }
+        .month-title-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 180px;
+        }
+        .month-current-button {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border-radius: 50%;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .calendar-icon {
+            width: 18px;
+            height: 18px;
+            display: block;
+            flex-shrink: 0;
         }
         #current-month-year {
             font-size: 1.1rem;
@@ -290,6 +314,10 @@
             min-height: 160px;
             color: #6c757d;
             font-size: 0.95rem;
+        }
+        .sentiment-chart-empty[hidden],
+        .sentiment-chart-canvas-wrap[hidden] {
+            display: none;
         }
         .sentiment-note-emphasis {
             color: #2a6f62;
@@ -741,7 +769,12 @@
             <section id="monthly-view" class="forecast-view active">
                 <div class="month-navigator">
                     <button id="prev-month" aria-label="前の月へ">&lt;</button>
-                    <div id="current-month-year"></div>
+                    <div class="month-title-group">
+                        <div id="current-month-year"></div>
+                        <button id="current-month-button" class="month-current-button" aria-label="今月へ戻る" title="今月へ戻る">
+                            <img class="calendar-icon" src="カレンダーアイコン8.svg" alt="" aria-hidden="true">
+                        </button>
+                    </div>
                     <button id="next-month" aria-label="次の月へ">&gt;</button>
                 </div>
                 <div id="calendar">
@@ -767,17 +800,22 @@
             <section id="sentiment-view" class="forecast-view" aria-hidden="true">
                 <div class="month-navigator">
                     <button id="prev-sentiment-month" aria-label="前の月へ">&lt;</button>
-                    <div id="sentiment-current-month-year" class="sentiment-title-controls">
-                        <label class="sentiment-inline-select">
-                            <select id="sentiment-year-select" aria-label="年を選択">
-                                <option>2026年</option>
-                            </select>
-                        </label>
-                        <label class="sentiment-inline-select">
-                            <select id="sentiment-month-select" aria-label="月を選択">
-                                <option>5月</option>
-                            </select>
-                        </label>
+                    <div class="month-title-group">
+                        <div id="sentiment-current-month-year" class="sentiment-title-controls">
+                            <label class="sentiment-inline-select">
+                                <select id="sentiment-year-select" aria-label="年を選択">
+                                    <option>2026年</option>
+                                </select>
+                            </label>
+                            <label class="sentiment-inline-select">
+                                <select id="sentiment-month-select" aria-label="月を選択">
+                                    <option>5月</option>
+                                </select>
+                            </label>
+                        </div>
+                        <button id="current-sentiment-month-button" class="month-current-button" aria-label="今月へ戻る" title="今月へ戻る">
+                            <img class="calendar-icon" src="カレンダーアイコン8.svg" alt="" aria-hidden="true">
+                        </button>
                     </div>
                     <button id="next-sentiment-month" aria-label="次の月へ">&gt;</button>
                 </div>
@@ -913,7 +951,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- 設定項目 ---
     const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTmQpFVNY7pF25NLQnbRgG5gLeG7i4IsISqDy4yv3_eNGi1-rfoYFz44nPCviMVo-_Zwrj9sH1iiKYz/pub?gid=0&single=true&output=csv';
     const googleSheetUrlNextMonth = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGRrkZROswYj9wVu8NSpVjeG64zv9vhC1MU-wkRTz5p87UxyRHSFnRCTA5vW5KF0RB7DHX0TjdVaSq/pub?gid=0&single=true&output=csv';
-    const sentimentCsvUrl = '';
+    const sentimentCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT4rIzSk4P6Lm0fDsRlH7v8hvyPlFAMPzpGZdWRrVch6dJD-e3UVpaqgScpWSMB13JdwTtfWzPdlt-y/pub?gid=1497691723&single=true&output=csv';
 
     const congestionThresholds = {
         level_1: 301,  level_2: 401,  level_3: 501,  level_4: 601,  level_5: 701,
@@ -932,6 +970,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const monthYearElement = document.getElementById('current-month-year');
     const prevButton = document.getElementById('prev-month');
     const nextButton = document.getElementById('next-month');
+    const currentMonthButton = document.getElementById('current-month-button');
     const monthlyTabButton = document.getElementById('tab-monthly');
     const sentimentTabButton = document.getElementById('tab-sentiment');
     const monthlyView = document.getElementById('monthly-view');
@@ -941,6 +980,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const sentimentMonthSelect = document.getElementById('sentiment-month-select');
     const prevSentimentButton = document.getElementById('prev-sentiment-month');
     const nextSentimentButton = document.getElementById('next-sentiment-month');
+    const currentSentimentMonthButton = document.getElementById('current-sentiment-month-button');
     const sentimentChartCanvas = document.getElementById('sentiment-chart-canvas');
     const sentimentChartCanvasWrap = document.getElementById('sentiment-chart-canvas-wrap');
     const sentimentChartEmpty = document.getElementById('sentiment-chart-empty');
@@ -1003,6 +1043,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return 10;
     }
 
+    function isSameMonth(left, right) {
+        return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth();
+    }
+
+    function getMonthTime(date) {
+        return new Date(date.getFullYear(), date.getMonth(), 1).getTime();
+    }
+
+    function getCurrentSentimentTargetDate() {
+        const currentMonthTime = getMonthTime(baseDate);
+        if (currentMonthTime < getMonthTime(sentimentBaseDate)) return new Date(sentimentBaseDate);
+        if (currentMonthTime > getMonthTime(sentimentLimitDate)) return new Date(sentimentLimitDate);
+        return new Date(baseDate);
+    }
+
     function parseCsvRow(line) {
         return line.split(',').map((value) => value.trim());
     }
@@ -1063,6 +1118,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateNavButtonsState() {
         prevButton.disabled = currentDate.getFullYear() <= baseDate.getFullYear() && currentDate.getMonth() <= baseDate.getMonth();
         nextButton.disabled = currentDate.getFullYear() >= limitDate.getFullYear() && currentDate.getMonth() >= limitDate.getMonth();
+        currentMonthButton.disabled = isSameMonth(currentDate, baseDate);
     }
 
     function renderCalendar(year, month) {
@@ -1154,6 +1210,7 @@ document.addEventListener('DOMContentLoaded', function() {
             && currentSentimentDate.getMonth() <= sentimentBaseDate.getMonth();
         nextSentimentButton.disabled = currentSentimentDate.getFullYear() >= sentimentLimitDate.getFullYear()
             && currentSentimentDate.getMonth() >= sentimentLimitDate.getMonth();
+        currentSentimentMonthButton.disabled = isSameMonth(currentSentimentDate, getCurrentSentimentTargetDate());
     }
 
     function getSentimentMonthSeries(year, month) {
@@ -1881,23 +1938,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     const sentimentResponse = await fetch(`${sentimentCsvUrl}${cacheSeparator}t=${new Date().getTime()}`);
                     if (sentimentResponse && sentimentResponse.ok) {
                         const csvText = await sentimentResponse.text();
-                        const [headerLine, ...rows] = csvText.trim().split(/\r?\n/);
-                        const headers = parseCsvRow(headerLine);
+                        const [, ...rows] = csvText.trim().split(/\r?\n/);
                         sentimentData = rows.map((row) => {
                             const values = parseCsvRow(row);
-                            const record = {};
-                            headers.forEach((header, index) => {
-                                record[header] = values[index] ?? '';
-                            });
                             return {
-                                date: record.date,
-                                sentimentAvg: parseDecimal(record.sentiment_avg),
-                                sentimentCount: parseNumber(record.sentiment_count),
-                                sentiment1: parseNumber(record.sentiment_1) || 0,
-                                sentiment2: parseNumber(record.sentiment_2) || 0,
-                                sentiment3: parseNumber(record.sentiment_3) || 0,
-                                sentiment4: parseNumber(record.sentiment_4) || 0,
-                                sentiment5: parseNumber(record.sentiment_5) || 0,
+                                date: values[0] ?? '',
+                                sentimentAvg: parseDecimal(values[1]),
+                                sentimentCount: parseNumber(values[2]),
+                                sentiment1: parseNumber(values[3]) || 0,
+                                sentiment2: parseNumber(values[4]) || 0,
+                                sentiment3: parseNumber(values[5]) || 0,
+                                sentiment4: parseNumber(values[6]) || 0,
+                                sentiment5: parseNumber(values[7]) || 0,
                                 detailMode: 'sentiment',
                             };
                         })
@@ -1938,6 +1990,11 @@ document.addEventListener('DOMContentLoaded', function() {
         renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
     });
 
+    currentMonthButton.addEventListener('click', () => {
+        currentDate = new Date(baseDate);
+        renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    });
+
     prevSentimentButton.addEventListener('click', () => {
         if (prevSentimentButton.disabled) return;
         currentSentimentDate.setMonth(currentSentimentDate.getMonth() - 1);
@@ -1947,6 +2004,11 @@ document.addEventListener('DOMContentLoaded', function() {
     nextSentimentButton.addEventListener('click', () => {
         if (nextSentimentButton.disabled) return;
         currentSentimentDate.setMonth(currentSentimentDate.getMonth() + 1);
+        syncSentimentViews();
+    });
+
+    currentSentimentMonthButton.addEventListener('click', () => {
+        currentSentimentDate = getCurrentSentimentTargetDate();
         syncSentimentViews();
     });
 
